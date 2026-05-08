@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Files - Vault Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle at top left, #1e293b, #0f172a); color: white; min-height: 100vh; }
+        .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="p-5">
+    <nav class="flex justify-center gap-2 mb-8 glass-card p-2 rounded-2xl max-w-md mx-auto">
+        <a href="main.html" class="flex-1 text-center py-2 rounded-xl text-gray-400">Upload</a>
+        <a href="view.html" class="flex-1 text-center py-2 rounded-xl bg-blue-600 font-medium">View</a>
+        <a href="download.html" class="flex-1 text-center py-2 rounded-xl text-gray-400">Download</a>
+    </nav>
+
+    <div class="max-w-md mx-auto">
+        <input type="text" id="searchBar" placeholder="Search files..." class="w-full p-4 rounded-2xl bg-white/5 border border-white/10 mb-6 focus:outline-none focus:border-blue-500">
+        <div id="fileList" class="space-y-3"></div>
+    </div>
+
+    <div id="viewer" class="fixed inset-0 bg-black/95 hidden flex flex-col p-4 z-50">
+        <button onclick="closeViewer()" class="self-end bg-red-500/20 text-red-500 px-6 py-2 rounded-xl mb-4 font-bold">Close Preview</button>
+        <div id="viewerContent" class="flex-1 flex items-center justify-center overflow-auto p-2"></div>
+    </div>
+
+    <script>
+        function loadFiles(query = "") {
+            const list = document.getElementById('fileList');
+            list.innerHTML = "";
+            
+            // LocalStorage থেকে ডাটা আনা
+            const files = JSON.parse(localStorage.getItem('vault_files') || '[]');
+
+            files.forEach((file, index) => {
+                if (file.name.toLowerCase().includes(query.toLowerCase())) {
+                    const div = document.createElement('div');
+                    div.className = "glass-card p-4 rounded-2xl cursor-pointer hover:bg-white/5 transition flex justify-between items-center";
+                    div.innerHTML = `
+                        <div class="overflow-hidden">
+                            <p class="font-bold truncate text-sm">${file.name}</p>
+                            <small class="text-gray-500">${file.type} • ${file.size}</small>
+                        </div>
+                    `;
+                    div.onclick = () => openViewer(file);
+                    list.appendChild(div);
+                }
+            });
+
+            if(list.innerHTML === "") list.innerHTML = `<p class="text-center text-gray-500 mt-10">No files found in memory.</p>`;
+        }
+
+        function openViewer(file) {
+            const viewer = document.getElementById('viewer');
+            const content = document.getElementById('viewerContent');
+            viewer.classList.remove('hidden');
+            
+            if (file.type.startsWith('image/')) {
+                content.innerHTML = `<img src="${file.content}" class="max-w-full max-h-full rounded-lg shadow-2xl">`;
+            } else if (file.type.startsWith('video/')) {
+                content.innerHTML = `<video controls src="${file.content}" class="max-w-full max-h-full"></video>`;
+            } else {
+                content.innerHTML = `
+                    <div class="text-center">
+                        <div class="bg-white/5 p-8 rounded-full mb-4 inline-block">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                             </svg>
+                        </div>
+                        <p class="text-gray-400">Preview not available for this file type.</p>
+                        <p class="text-xs text-blue-500 mt-2">${file.name}</p>
+                    </div>`;
+            }
+        }
+
+        function closeViewer() { document.getElementById('viewer').classList.add('hidden'); }
+        document.getElementById('searchBar').oninput = (e) => loadFiles(e.target.value);
+        window.onload = () => loadFiles();
+    </script>
+</body>
+</html>
