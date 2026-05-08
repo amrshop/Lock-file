@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vault Pro - Local Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* এনিমেশন লোডার */
+        .premium-loader {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: conic-gradient(#3b82f6 var(--p, 0%), transparent 0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: --p 0.3s;
+            position: relative;
+        }
+        .premium-loader::before {
+            content: "";
+            position: absolute;
+            width: 85px;
+            height: 85px;
+            background: #0f172a;
+            border-radius: 50%;
+        }
+        .percent-val {
+            position: relative;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: #3b82f6;
+        }
+        @property --p {
+            syntax: '<number>';
+            inherits: true;
+            initial-value: 0;
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <nav class="flex gap-2 mb-12 glass-card p-2 rounded-2xl">
+        <a href="main.html" class="px-6 py-2 rounded-xl bg-blue-600 font-medium transition">Upload</a>
+        <a href="view.html" class="px-6 py-2 rounded-xl hover:bg-white/5 transition text-gray-400">View</a>
+        <a href="download.html" class="px-6 py-2 rounded-xl hover:bg-white/5 transition text-gray-400">Download</a>
+    </nav>
+
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black tracking-tight text-white mb-2">Local <span class="text-blue-500">Vault</span></h1>
+            <p class="text-gray-500 text-sm">Direct Phone Memory • Max 10MB</p>
+        </div>
+
+        <div id="dropzone" class="glass-card rounded-[2.5rem] p-12 border-2 border-dashed border-white/10 hover:border-blue-500/50 transition-all text-center group">
+            <input type="file" id="fileInput" class="hidden">
+            <label for="fileInput" class="cursor-pointer block">
+                <div class="bg-blue-500/10 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold mb-2 text-white">Choose Any File</h3>
+                <p class="text-gray-500 text-sm text-balance">No Database, No Server. Instant Save.</p>
+            </label>
+        </div>
+
+        <div id="loadingArea" class="hidden mt-10 glass-card rounded-[2.5rem] p-10 flex flex-col items-center">
+            <div id="loaderCircle" class="premium-loader mb-4" style="--p: 0">
+                <span class="percent-val" id="percentText">0%</span>
+            </div>
+            <p id="fileStatus" class="text-gray-400 font-medium animate-pulse text-center truncate w-full px-4 text-sm">Saving to memory...</p>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const loadingArea = document.getElementById('loadingArea');
+        const dropzone = document.getElementById('dropzone');
+        const percentText = document.getElementById('percentText');
+        const loaderCircle = document.getElementById('loaderCircle');
+        const fileStatus = document.getElementById('fileStatus');
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // ১০ এমবি লিমিট চেক (১০ * ১০২৪ * ১০২৪ বাইট)
+            const MAX_SIZE = 10 * 1024 * 1024;
+            if (file.size > MAX_SIZE) {
+                alert("❌ ফাইলটি অনেক বড়! ১০ এমবি এর বেশি ফাইল সেভ করা সম্ভব নয়।");
+                fileInput.value = "";
+                return;
+            }
+
+            dropzone.classList.add('hidden');
+            loadingArea.classList.remove('hidden');
+            fileStatus.innerText = `Processing: ${file.name}`;
+            
+            let progress = 0;
+            let interval = setInterval(() => {
+                progress += 10;
+                loaderCircle.style.setProperty('--p', progress);
+                percentText.innerText = progress + "%";
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    saveLocally(file);
+                }
+            }, 50); 
+        });
+
+        function saveLocally(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    // এটি ডাটাকে বেস৬৪ ফরম্যাটে কনভার্ট করে
+                    const fileData = {
+                        name: file.name,
+                        type: file.type || "application/octet-stream",
+                        size: (file.size / 1024).toFixed(2) + " KB",
+                        content: e.target.result,
+                        date: new Date().toLocaleString()
+                    };
+
+                    // লোকাল স্টোরেজে সেভ করার চেষ্টা (ব্রাউজার লিমিট ৫-১০ এমবি হতে পারে)
+                    // যেহেতু আপনি IndexedDB চাচ্ছেন না, এটিই একমাত্র উপায়
+                    const existingFiles = JSON.parse(localStorage.getItem('vault_files') || '[]');
+                    existingFiles.push(fileData);
+                    localStorage.setItem('vault_files', JSON.stringify(existingFiles));
+
+                    alert("✅ ফাইলটি ফোনের লোকাল স্টোরেজে সেভ হয়েছে!");
+                    location.reload(); 
+                } catch (err) {
+                    console.error(err);
+                    alert("❌ এরর: ব্রাউজারের লোকাল স্টোরেজ ফুল হয়ে গেছে অথবা এই ফাইলটি অনেক বড়। বড় ফাইল সেভ করতে হলে প্রযুক্তিগতভাবে IndexedDB ব্যবহার করা বাধ্যতামূলক।");
+                    location.reload();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
+</body>
+</html>
