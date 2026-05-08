@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Change Password</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="p-6 flex flex-col items-center">
+
+    <div class="w-full max-w-sm flex justify-between items-center mb-10">
+        <button onclick="window.history.back()" class="text-gray-400 hover:text-white">← Back</button>
+        <h2 class="text-xl font-bold">Security</h2>
+        <div class="w-10"></div> </div>
+
+    <div class="glass p-8 rounded-3xl w-full max-w-sm shadow-2xl">
+        <h1 class="text-2xl font-bold text-center mb-2">Change Password</h1>
+        <p class="text-gray-400 text-xs text-center mb-8">Update your vault access key</p>
+
+        <div class="space-y-6">
+            <div>
+                <label class="text-xs text-blue-400 uppercase tracking-widest ml-1">Current Password</label>
+                <input type="password" id="oldPass" placeholder="••••" class="w-full bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none p-2 text-center text-xl tracking-widest transition-all">
+            </div>
+
+            <div>
+                <label class="text-xs text-blue-400 uppercase tracking-widest ml-1">New Password</label>
+                <input type="password" id="newPass" placeholder="••••" class="w-full bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none p-2 text-center text-xl tracking-widest transition-all">
+            </div>
+
+            <div>
+                <label class="text-xs text-blue-400 uppercase tracking-widest ml-1">Confirm New Password</label>
+                <input type="password" id="confirmNewPass" placeholder="••••" class="w-full bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none p-2 text-center text-xl tracking-widest transition-all">
+            </div>
+
+            <button onclick="changePassword()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all active:scale-95 mt-4">
+                Update Password
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function changePassword() {
+            const oldPassInput = document.getElementById('oldPass').value;
+            const newPassInput = document.getElementById('newPass').value;
+            const confirmNewPassInput = document.getElementById('confirmNewPass').value;
+            
+            // লোকাল স্টোরেজ থেকে সেভ করা পাসওয়ার্ড আনা
+            const savedPass = localStorage.getItem('vaultPassword');
+
+            // ১. বর্তমান পাসওয়ার্ড চেক
+            if (oldPassInput !== savedPass) {
+                alert("Current password is incorrect!");
+                return;
+            }
+
+            // ২. নতুন পাসওয়ার্ড খালি কিনা চেক
+            if (newPassInput.length < 4) {
+                alert("New password must be at least 4 characters!");
+                return;
+            }
+
+            // ৩. নতুন পাসওয়ার্ড আর কনফার্ম পাসওয়ার্ড মিল আছে কিনা চেক
+            if (newPassInput !== confirmNewPassInput) {
+                alert("New passwords do not match!");
+                return;
+            }
+
+            // ৪. সব ঠিক থাকলে নতুন পাসওয়ার্ড সেভ করা
+            localStorage.setItem('vaultPassword', newPassInput);
+            
+            alert("✅ Password Changed Successfully!");
+            
+            // পাসওয়ার্ড চেঞ্জ হলে ইউজারকে আবার লগইন পেইজে পাঠিয়ে দেওয়া ভালো
+            window.location.href = "index.html"; 
+        }
+    </script>
+</body>
+</html>
