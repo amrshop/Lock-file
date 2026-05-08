@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Vault - Lock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle at center, #1a1a2e, #16213e); height: 100vh; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        /* ক্লিকেবল লিঙ্কের জন্য এক্সট্রা স্টাইল */
+        .link-item { transition: all 0.3s ease; }
+        .link-item:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="flex items-center justify-center text-white font-sans">
+
+    <div class="glass p-10 rounded-3xl shadow-2xl w-full max-w-sm text-center transform transition-all hover:scale-105">
+        <div class="mb-6">
+            <div class="bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-blue-500/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+            </div>
+            <h1 id="title" class="text-2xl font-bold mt-4 tracking-wider">Secure Vault</h1>
+            <p id="desc" class="text-gray-400 text-sm mt-1">Please enter your password</p>
+        </div>
+
+        <div id="inputGroup" class="space-y-4">
+            <input type="password" id="passInput" placeholder="Enter Password" class="w-full bg-transparent border-b-2 border-gray-600 focus:border-blue-500 outline-none p-2 text-center text-xl tracking-widest transition-colors">
+            
+            <input type="password" id="confirmPassInput" placeholder="Confirm Password" class="hidden w-full bg-transparent border-b-2 border-gray-600 focus:border-blue-500 outline-none p-2 text-center text-xl tracking-widest transition-colors">
+            
+            <button onclick="handleLogic()" id="btnAction" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-lg transition-all active:scale-95">
+                Unlock
+            </button>
+        </div>
+
+        <div class="mt-8 space-y-4">
+            <a href="recovery.html" id="forgotLink" class="link-item block text-blue-400 hover:text-blue-300 text-sm font-semibold underline decoration-blue-500/50 underline-offset-4 transition-colors">
+                পাসওয়ার্ড ভুলে গেছেন? (Forgot Password)
+            </a>
+            
+            <div id="settingsContainer" class="pt-2">
+                <a href="settings.html" class="link-item inline-flex items-center gap-2 text-gray-400 hover:text-white text-xs bg-white/5 px-4 py-2 rounded-full border border-white/10 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const passInput = document.getElementById('passInput');
+        const confirmPassInput = document.getElementById('confirmPassInput');
+        const title = document.getElementById('title');
+        const desc = document.getElementById('desc');
+        const btnAction = document.getElementById('btnAction');
+        const forgotLink = document.getElementById('forgotLink');
+        const settingsContainer = document.getElementById('settingsContainer');
+
+        const savedPass = localStorage.getItem('vaultPassword');
+
+        // প্রথমবার ওপেন করলে সেটআপ মোড
+        if (!savedPass) {
+            title.innerText = "Setup Vault";
+            desc.innerText = "Create a new strong password";
+            btnAction.innerText = "Set Password";
+            confirmPassInput.classList.remove('hidden');
+            forgotLink.classList.add('hidden');
+            settingsContainer.classList.add('hidden'); // সেটআপের সময় সেটিংস দেখানোর দরকার নেই
+        }
+
+        function handleLogic() {
+            const pass = passInput.value;
+
+            if (!savedPass) {
+                const confirmPass = confirmPassInput.value;
+                if (pass.length < 4) {
+                    alert("Password must be at least 4 characters!");
+                    return;
+                }
+                if (pass !== confirmPass) {
+                    alert("Passwords do not match!");
+                    return;
+                }
+                localStorage.setItem('vaultPassword', pass);
+                alert("Password Set Successfully! Now set recovery pattern.");
+                window.location.href = "recovery.html";
+            } else {
+                if (pass === savedPass) {
+                    alert("Access Granted!");
+                    window.location.href = "main.html"; 
+                } else {
+                    alert("Wrong Password! Try again.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
