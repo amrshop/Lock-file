@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Vault - Recovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle at center, #1a1a2e, #16213e); height: 100vh; overflow: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="flex items-center justify-center text-white">
+
+    <div class="glass p-10 rounded-3xl shadow-2xl w-full max-w-sm text-center">
+        <div class="mb-6 text-red-400">
+            <h1 id="recTitle" class="text-2xl font-bold tracking-wider">Recovery Mode</h1>
+            <p id="recDesc" class="text-gray-400 text-sm mt-1">Set a recovery PIN for safety</p>
+        </div>
+
+        <div class="space-y-4">
+            <input type="number" id="recInput" placeholder="Enter 4 Digit PIN" class="w-full bg-transparent border-b-2 border-gray-600 focus:border-red-500 outline-none p-2 text-center text-2xl tracking-widest transition-colors">
+            
+            <button onclick="handleRecovery()" id="recBtn" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all">
+                Save Recovery PIN
+            </button>
+        </div>
+
+        <div class="mt-6 text-xs text-gray-500">
+            <p>Remember this PIN. Without it, you cannot reset your password.</p>
+        </div>
+    </div>
+
+    <script>
+        const recInput = document.getElementById('recInput');
+        const recTitle = document.getElementById('recTitle');
+        const recDesc = document.getElementById('recDesc');
+        const recBtn = document.getElementById('recBtn');
+
+        const hasRecovery = localStorage.getItem('recoveryPin');
+
+        if (hasRecovery) {
+            recTitle.innerText = "Forgot Password?";
+            recDesc.innerText = "Enter your recovery PIN to reset";
+            recBtn.innerText = "Verify PIN";
+        }
+
+        function handleRecovery() {
+            const pin = recInput.value;
+
+            if (!hasRecovery) {
+                // সেটআপ মোড (প্রথমবার পিন সেট করার জন্য)
+                if (pin.length !== 4) {
+                    alert("Please enter exactly 4 digits!");
+                    return;
+                }
+                localStorage.setItem('recoveryPin', pin);
+                alert("Recovery PIN Saved Successfully!");
+                window.location.href = "index.html";
+            } else {
+                // ভেরিফিকেশন মোড (পিন সঠিক হলে সরাসরি main.html এ যাবে)
+                if (pin === hasRecovery) {
+                    alert("Recovery PIN Correct! Accessing Vault...");
+                    window.location.href = "main.html";
+                } else {
+                    alert("Invalid Recovery PIN!");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
